@@ -1,0 +1,8 @@
+bedlevel.toml
+bedlevel.toml.bak
+mesh-backups/
+spacers/
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/

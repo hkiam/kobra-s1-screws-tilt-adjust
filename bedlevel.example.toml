@@ -1,0 +1,135 @@
+# Konfiguration der Druckbett-Justage fuer den Anycubic Kobra S1.
+#
+# Diese Datei ist eine funktionierende Beispielkonfiguration. Fuer ein anderes
+# Geraet muessen mindestens angepasst werden:
+#
+#   printer.host             IP des Druckers
+#   screws.points            Koordinaten ueber den vier Schrauben
+#                            -> "bedlevel teach" laeuft sie interaktiv ab
+#   screws.cw_lowers_bed     ob Anziehen das Bett senkt oder hebt
+#                            -> "bedlevel calibrate-direction" ermittelt es
+#   screws.tolerance_minutes wie genau es werden soll
+#   spacer.*                 Geometrie der Abstandshalter, falls verwendet
+#
+# Alles Weitere hat brauchbare Vorgaben. Erlaeuterungen in docs/.
+#
+# Diese Datei ist die Vorlage. Zum Arbeiten kopieren:
+#     cp bedlevel.example.toml bedlevel.toml
+# Die Kopie wird von git ignoriert - deine IP und deine Messpunkte bleiben lokal.
+
+[printer]
+host = "192.168.1.50"          # IP deines Druckers
+port = 7125                      # Moonraker-Standardport
+# api_key = "..."                # nur noetig, wenn Moonraker Authentifizierung verlangt
+
+[temps]
+# Warm justieren, nicht kalt: die Geometrie aendert sich mit der Temperatur.
+# Die eigene Levelroutine des Druckers faehrt laut G-Code-Puffer
+#   M140 S80 / M109 S170 -> WIPE -> M109 S140 -> BED_MESH_CALIBRATE
+# Sinnvoll ist die Betttemperatur, bei der spaeter gedruckt wird.
+bed = 60                        # Originalroutine nutzt 80
+nozzle_probe = 140              # warm genug fuer realistische Ausdehnung, kalt genug gegen Sabbern
+nozzle_wipe = 170               # Wischtemperatur, danach zurueck auf nozzle_probe
+cooldown_after = false
+
+[wipe]
+# Der S1 tastet mit der Duese selbst an (Kraftsensor cs1237). Anhaftendes
+# Filament wird bei jedem Antasten flacher gedrueckt und laesst die Messwerte
+# gerichtet wandern - genau das war ohne Reinigung zu beobachten.
+# Sequenz und Wischhoehe am Geraet verifiziert: auf Z15 streift die Duese die
+# Wischvorrichtung sauber ab. Die Makros stammen aus der Levelroutine der
+# Firmware (WIPE_ENTER -> 14x X96/X81 -> WIPE_EXIT).
+enabled = true
+gcode = """
+G90
+G1 Z15 F900
+WIPE_ENTER
+WIPE_NOZZLE
+WIPE_EXIT
+"""
+
+[park]
+# Die Schrauben sitzen oben am Druckbett - nach einer Messung steht die Duese
+# genau darueber. Vor jeder Handarbeit faehrt der Kopf hierhin: Bett abgesenkt,
+# Kopf nach hinten aus dem Greifbereich.
+enabled = true
+x = 125
+y = 277                         # ganz hinten, hinter den hinteren Schrauben (Y213)
+z = 60                          # Abstand Duese/Bett - Platz fuer Schraubendreher und Hand
+
+[spacer]
+# Der Kobra S1 hat ab Werk keine Abstandshalter - das Bett liegt direkt auf dem
+# Traeger, und der Werksversatz der vier Aufnahmepunkte muss komplett von den
+# Schrauben ausgeglichen werden. Gedruckte Spacer nehmen ihn vorweg: die
+# tiefste Ecke bekommt max_height, die uebrigen werden um ihren Hoehenvorsprung
+# gekuerzt. Danach arbeiten alle vier Schrauben im gleichen Bereich.
+outer_diameter = 8.74
+inner_diameter = 4.3            # Durchgang fuer die M4-Schraube, mit Spiel
+max_height = 10.5               # Bauhoehe des hoechsten Spacers
+# TPU mit wenig Infill federt: unter Vorspannung wird ein hoher Spacer staerker
+# gestaucht als ein flacher, wodurch die Hoehendifferenz schrumpft. Hier laesst
+# sich das vorhalten (0.1 = Differenzen um 10 % ueberhoehen). Erst nach dem
+# ersten Einbau sinnvoll zu schaetzen - vorher 0 lassen.
+compression = 0.0
+segments = 128                  # Umfangsaufloesung; 128 = rund 0,2 mm Sehne
+material = "TPU 95A"
+walls = 1
+infill = "10 % Gyroid"
+
+[probe]
+samples_per_point = 8           # Median aus so vielen Antastungen je Punkt
+# Die Messungen werden ueber mehrere Durchgaenge verschraenkt, statt jeden
+# Punkt am Stueck zu messen: Reihenfolge ueber Kreuz, im zweiten Durchgang
+# rueckwaerts. Damit liegt der zeitliche Schwerpunkt jeder Ecke in der Mitte
+# der Gesamtreihe - senkt sich das Bett waehrend der Messung, hebt sich der
+# Effekt auf, statt als Scheinverkippung im Ergebnis zu landen.
+passes = 2
+discard_first = true            # erste Antastung je Punkt verwerfen (Setzverhalten)
+travel_speed = 250              # mm/s Verfahrgeschwindigkeit
+lift_speed = 15                 # mm/s Z-Bewegung
+safe_z = 5.0                    # Hoehe beim Verfahren zwischen den Punkten
+settle_seconds = 0.0
+
+[screws]
+thread = "M4"                   # Regelgewinde M4 -> 0,7 mm Steigung
+# Am Geraet bestaetigt: Anziehen (im Uhrzeigersinn) spannt staerker und senkt
+# die Druckplatte ab - der Abstand zur Duese wird groesser.
+cw_lowers_bed = true
+# Welche Schraube stehen bleibt und als Bezug dient:
+#   "nur-anziehen"  alle uebrigen Schrauben werden angezogen, keine geloest.
+#                   Anziehen haelt die Spannung der Lagerung besser als
+#                   Ausdrehen. Die Wahl wird je Durchgang neu getroffen.
+#   "auto"          geringster Gesamtdrehaufwand (kann Loesen verlangen)
+#   "<name>"        genau diese Schraube, z. B. "vorne rechts"
+reference = "nur-anziehen"
+# Toleranz in Minuten der Uhrzeit-Notation, passend zur Spalte "adjust".
+# Richtwerte aus der Praxis:
+#   unter 00:10  gut - fuer den Alltag voellig ausreichend, den Rest macht das Bed Mesh
+#   unter 00:05  exzellent - wenn das Bett moeglichst spannungsfrei liegen soll
+#   unter 00:02  Grenze des mechanischen Spiels von Schrauben und Lagerung
+# Alle Warnungen zur Messqualitaet beziehen sich auf diesen Wert: was stoert,
+# haengt am Ziel. Eine Drift von 1 Minute ist bei 00:10 belanglos.
+tolerance_minutes = 10
+
+# TODO: Positionen an die tatsaechliche Lage der vier Schrauben anpassen.
+# Der Kobra S1 tastet mit der Duese an (x_offset = y_offset = 0), die Werte
+# sind also direkt die Duesenkoordinaten ueber der jeweiligen Schraube.
+[[screws.points]]
+name = "vorne links"
+x = 41
+y = 43
+
+[[screws.points]]
+name = "vorne rechts"
+x = 211
+y = 43
+
+[[screws.points]]
+name = "hinten rechts"
+x = 211
+y = 213
+
+[[screws.points]]
+name = "hinten links"
+x = 41
+y = 213
