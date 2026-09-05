@@ -22,6 +22,12 @@ tallest spacer, the others correspondingly shorter ones. Afterwards all four
 screws operate in the same range and fine adjustment has room in both
 directions.
 
+![Mounting point in section](images/mounting-point.svg)
+
+The screw pulls the bed down against the spacer. That is why tightening lowers
+a corner — and why the spacer must stay springy: printed solid it would be a
+rigid block and would defeat the screw adjustment entirely.
+
 ## Prerequisites
 
 What gets measured is the **baseline**, not an already compensated state.

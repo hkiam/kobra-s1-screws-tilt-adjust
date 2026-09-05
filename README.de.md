@@ -200,6 +200,9 @@ Vorspannung über die Schraube einstellen lässt. Beim Kobra S1 ab Werk ist das
 nicht gegeben — dort ist ein Umbau nötig, und gedruckte Spacer sind ohnehin
 empfehlenswert.
 
+Eine Schnittzeichnung des Aufnahmepunkts steht in
+[docs/SPACERS.de.md](docs/SPACERS.de.md).
+
 ---
 
 ## Installation

@@ -22,6 +22,12 @@ Gedruckte Spacer nehmen den Versatz vorweg. Die tiefste Ecke bekommt den
 höchsten Spacer, die übrigen entsprechend flachere. Danach stehen alle vier
 Schrauben im gleichen Bereich, und die Feinjustage hat nach beiden Seiten Luft.
 
+![Aufnahmepunkt im Schnitt](images/mounting-point.de.svg)
+
+Die Schraube zieht das Bett nach unten gegen den Spacer. Daher senkt Anziehen
+eine Ecke — und daher muss der Spacer federnd bleiben: massiv gedruckt wäre er
+ein starrer Klotz und würde die Schraubenjustage aushebeln.
+
 ## Voraussetzungen
 
 Gemessen wird die **Ausgangslage**, nicht der schon ausgeglichene Zustand.

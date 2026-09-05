@@ -193,6 +193,9 @@ The bed screws must be **mounted with some play** so that preload can be set
 through the screw. The Kobra S1 does not provide this out of the box — a
 modification is needed, and printed spacers are recommended anyway.
 
+A sectional drawing of a mounting point is in
+[docs/SPACERS.md](docs/SPACERS.md).
+
 ---
 
 ## Installation
