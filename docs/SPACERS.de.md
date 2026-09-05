@@ -1,12 +1,21 @@
 # Abstandshalter
 
+*[English version: SPACERS.md](SPACERS.md)*
+
+> **Der am wenigsten erprobte Teil dieses Projekts.** Der Generator entstand
+> erst, *nachdem* am Testgerät bereits Spacer verbaut waren — der vollständige
+> Ablauf (Ausgangslage messen, drucken, einbauen) wurde also nie am Stück
+> durchlaufen. Die Rechnung und die STL-Geometrie sind durch Tests abgedeckt,
+> der praktische Ablauf nicht. Betrachte ihn als begründeten Vorschlag, nicht
+> als erprobtes Rezept.
+
 Der Kobra S1 hat ab Werk **keine** Abstandshalter — das Bett liegt direkt auf
 dem Träger. Der Werksversatz der vier Aufnahmepunkte muss dadurch komplett von
 den Schrauben ausgeglichen werden: eine Ecke arbeitet dauerhaft nahe am
 Anschlag, während eine andere kaum Vorspannung hat.
 
 Genau daraus entstehen die Messprobleme aus
-[MESSQUALITAET.md](MESSQUALITAET.md) — eine Ecke, die unter dem Antastdruck
+[MESSQUALITAET.md](MEASUREMENT.de.md) — eine Ecke, die unter dem Antastdruck
 nachgibt oder zwischen zwei Lagen einrastet.
 
 Gedruckte Spacer nehmen den Versatz vorweg. Die tiefste Ecke bekommt den

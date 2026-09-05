@@ -8,8 +8,32 @@ platform. The tool runs on your PC, talks to the printer over Moonraker, probes
 the points above the four bed screws and tells you how far to turn each one —
 in Klipper notation.
 
-*[Deutsche Fassung: README.de.md](README.de.md) — the detailed documentation in
-`docs/` is in German.*
+*[Deutsche Fassung: README.de.md](README.de.md)*
+
+---
+
+> ### Status: works, but young
+>
+> This tool was written **while setting up a single printer**, and the
+> documentation grew alongside it. Everything described here was done on that
+> one machine, most of it exactly once. It has not been re-tested across
+> multiple printers, multiple bed types, or repeated fresh runs.
+>
+> Expect rough edges. The evaluation logic is covered by 106 tests that run
+> without a printer, and every firmware claim in
+> [docs/RINKHALS.md](docs/RINKHALS.md) was verified on the device — but the
+> practical workflow has the test coverage of a sample size of one.
+>
+> **The spacer generator is the least proven part.** It was added *after*
+> spacers were already fitted to the test machine, so the full sequence
+> — measure the baseline, print, install, verify — has never been run end to
+> end. The maths and the STL geometry are tested; the workflow around them is a
+> well-founded proposal, not a proven recipe.
+>
+> Bug reports and experience from other machines are very welcome.
+
+---
+
 
 ---
 
@@ -57,7 +81,7 @@ by more than a full turn of its screw.
 This was achieved in two stages:
 
 1. **Printed spacers** that take out the factory offset — the Kobra S1 ships
-   without any (see [docs/SPACER.md](docs/SPACER.md), in German).
+   without any (see [docs/SPACER.md](docs/SPACERS.de.md), in German).
 2. **Fine adjustment via the screws** using this tool.
 
 What the bed mesh has to compensate afterwards is an entirely different
@@ -150,7 +174,7 @@ modified, no file on the printer is touched, no configuration overwritten.
 | `POST /printer/gcode/script` | `G28`, `G0`/`G1`, `PROBE`, `M104`/`M140`, `M105` |
 
 **SSH is not required.** It was only useful during development, to work out
-firmware quirks — documented in [docs/RINKHALS.md](docs/RINKHALS.md).
+firmware quirks — documented in [docs/RINKHALS.md](docs/RINKHALS.de.md).
 
 ### PC
 
@@ -491,6 +515,19 @@ bed_temp: 80
 > **No warranty.** These values come from a single machine. `probe.speed` and
 > `samples` affect how hard the nozzle lands — probing too fast can hurt
 > repeatability. Verify with `bedlevel stability "<name>"` after changing them.
+
+---
+
+## Documentation
+
+| | |
+|---|---|
+| [docs/WORKFLOW.md](docs/WORKFLOW.md) | Step by step, from first measurement to a finished bed |
+| [docs/SPACERS.md](docs/SPACERS.md) | Printing spacers that take out the factory offset |
+| [docs/MEASUREMENT.md](docs/MEASUREMENT.md) | Notation, tolerance, reference choice, failure modes |
+| [docs/RINKHALS.md](docs/RINKHALS.md) | Firmware quirks and how they were verified |
+
+Each document has a German counterpart (`*.de.md`).
 
 ---
 

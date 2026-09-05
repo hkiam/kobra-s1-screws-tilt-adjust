@@ -1,93 +1,95 @@
-# Firmware-Eigenheiten (Rinkhals / gklib)
+# Firmware quirks (Rinkhals / gklib)
 
-Der Kobra S1 fährt kein echtes Klipper, sondern **gklib** — eine Go-Portierung
-von Anycubic. Rinkhals setzt ein echtes Moonraker davor. Vieles verhält sich
-wie gewohnt, einiges nicht. Die folgenden Punkte sind am Gerät nachgewiesen,
-nicht aus der Dokumentation übernommen — sie kosten sonst Stunden.
+*[Deutsche Fassung: RINKHALS.de.md](RINKHALS.de.md)*
 
-Getestet mit Rinkhals `20260901_01`, gklib auf `rinkhals_gklib.cfg`.
+The Kobra S1 does not run real Klipper but **gklib** — a Go port by Anycubic.
+Rinkhals puts a real Moonraker in front of it. Much behaves as expected, some
+things do not. The points below were verified on the machine, not taken from
+documentation — they otherwise cost hours.
 
-## `probe` fehlt in `objects/list`, ist aber abfragbar
+Tested with Rinkhals `20260901_01`, gklib on `rinkhals_gklib.cfg`.
 
-`/printer/objects/list` führt **kein** `probe`-Objekt. Wer der Liste glaubt,
-baut den Auslesepfad unnötig um. Die Abfrage funktioniert trotzdem:
+## `probe` is missing from `objects/list` but can be queried
+
+`/printer/objects/list` does **not** list a `probe` object. Trusting that list
+leads to rebuilding the read path for nothing. The query works regardless:
 
 ```bash
 curl "http://<ip>:7125/printer/objects/query?probe"
 # {"probe": {"last_query": false, "last_z_result": 0}}
 ```
 
-Konsequenz fürs Tool: `check` testet die Abfrage direkt, statt der Liste zu
-vertrauen.
+Consequence for the tool: `check` tests the query directly instead of trusting
+the list.
 
-## `PROBE` liefert die rohe Kinematikposition
+## `PROBE` returns the raw kinematic position
 
-Ein geladenes Bed Mesh transformiert die Z-Achse — am Testgerät um bis zu
-1,8 mm, positionsabhängig. Das wäre genau die Art Fehler, die eine
-Eckenmessung ruiniert.
+A loaded bed mesh transforms the Z axis — by up to 1.8 mm on the test machine,
+depending on position. That would be exactly the kind of error that ruins a
+corner measurement.
 
-`probe.last_z_result` folgt aber der **rohen** Kinematikposition, nicht der
-mesh-transformierten gcode-Position. An drei Punkten mit stark
-unterschiedlicher Mesh-Korrektur gemessen:
+But `probe.last_z_result` follows the **raw** kinematic position, not the
+mesh-transformed gcode position. Measured at three points with very different
+mesh corrections:
 
-| Punkt | `last_z_result` | Kinematik (roh) | gcode (mesh) | Mesh-Anteil |
+| Point | `last_z_result` | kinematic (raw) | gcode (mesh) | mesh share |
 |---|---:|---:|---:|---:|
-| Mitte | −0,1658 | −0,1708 | −0,1158 | −0,055 |
-| vorne links | −0,4308 | −0,4350 | −0,0906 | −0,344 |
-| hinten rechts | −0,2783 | −0,2825 | −0,1153 | −0,167 |
+| centre | −0.1658 | −0.1708 | −0.1158 | −0.055 |
+| front left | −0.4308 | −0.4350 | −0.0906 | −0.344 |
+| rear right | −0.2783 | −0.2825 | −0.1153 | −0.167 |
 
-Der Messwert folgt durchgehend der rohen Position. Es bleibt ein konstanter
-Versatz von rund 0,004 mm, dessen Ursache offen ist — er ist an allen Punkten
-gleich groß und fällt bei der relativen Auswertung heraus. Entscheidend ist,
-dass der Messwert der **rohen** Position folgt und nicht der um bis zu 0,34 mm
-verschobenen gcode-Position.
+The reading follows the raw position throughout. A constant offset of about
+0.004 mm remains whose cause is unresolved — it is the same at every point and
+cancels out in the relative evaluation. What matters is that the reading follows
+the **raw** position and not the gcode position, which is shifted by up to
+0.34 mm.
 
-**Ein aktives Bed Mesh stört die Messung also nicht.** Das Tool lässt es in
-Ruhe, prüft die Annahme aber bei jedem Lauf am ersten Messpunkt nach — falls
-ein Firmware-Update das umdreht.
+**An active bed mesh therefore does not disturb the measurement.** The tool
+leaves it alone but re-checks the assumption at the first measuring point of
+every run, in case a firmware update ever reverses it.
 
-## `BED_MESH_CLEAR` ist wirkungslos
+## `BED_MESH_CLEAR` has no effect
 
-Das Kommando wird quittiert, das Mesh bleibt geladen:
+The command is acknowledged, the mesh stays loaded:
 
 ```
-vorher              aktiv=True  profil='default'  spanne=1.829
-nach BED_MESH_CLEAR aktiv=True  profil='default'  spanne=1.829
+before               active=True  profile='default'  range=1.829
+after BED_MESH_CLEAR active=True  profile='default'  range=1.829
 ```
 
-Es zu senden würde nur Sicherheit vortäuschen. Das Tool sendet es deshalb
-nicht — was dank des vorigen Punktes auch nicht nötig ist.
+Sending it would only feign safety. The tool therefore does not send it — which,
+thanks to the previous point, is not necessary either.
 
-## Der Leerlauf schaltet Heizung und Motoren ab
+## Idle shuts down heaters and motors
 
-**Statusabfragen über HTTP zählen nicht als Aktivität.** Ohne G-Code fällt der
-Drucker in den Leerlauf, schaltet die Heizungen ab und macht die Motoren
-stromlos — womit die Referenzfahrt verloren ist.
+**Status queries over HTTP do not count as activity.** Without G-code the
+printer goes idle, switches off the heaters and de-energises the motors — which
+loses the homing reference.
 
-Das trifft jede Automatisierung, die auf etwas wartet. Beobachtet: die Düse
-fiel mitten im Aufheizen von 105 °C zurück, während das Tool brav den Status
-pollte.
+This affects any automation that waits for something. Observed: the nozzle fell
+back from 105 °C in the middle of heating up while the tool dutifully polled the
+status.
 
-Gegenmaßnahmen im Tool:
+Countermeasures in the tool:
 
-- ein **Keepalive**, das alle 15 s ein `M105` sendet, über den gesamten Lauf —
-  besonders wichtig, während von Hand geschraubt wird
-- **Sollwerte nachsetzen** beim Warten auf Temperatur
-- **Homing prüfen** statt glauben: `G28` wird auch dann quittiert, wenn
-  hinterher `homed_axes` leer ist
+- a **keepalive** sending `M105` every 15 s throughout the run — especially
+  important while screws are being turned by hand
+- **re-sending setpoints** while waiting for temperature
+- **verifying homing** instead of assuming it: `G28` is acknowledged even when
+  `homed_axes` is empty afterwards
 
-Der genaue Timeout ließ sich nicht ermitteln — `idle_timeout` ist nicht
-konfiguriert, und der Wert `idle_timeout: 30` in der Konfiguration gehört zu
-`[controller_fan]`, ist also die Lüfternachlaufzeit. Das Keepalive-Intervall
-ist deshalb konservativ gewählt.
+The exact timeout could not be determined — `idle_timeout` is not configured,
+and the value `idle_timeout: 30` in the configuration belongs to
+`[controller_fan]`, i.e. it is the fan run-on time. The keepalive interval is
+therefore chosen conservatively.
 
-## Der G-Code-Puffer enthält keine Antworten
+## The G-code store holds no responses
 
-`/server/gcode_store` speichert nur die **Kommandos**, nicht die Ausgaben des
-Druckers. Kommandos wie `GET_POSITION` oder `BED_MESH_OUTPUT` sind über HTTP
-damit nicht auswertbar.
+`/server/gcode_store` records only the **commands**, not the printer's output.
+Commands such as `GET_POSITION` or `BED_MESH_OUTPUT` are therefore not
+evaluable over HTTP.
 
-Antworten gibt es nur über den Websocket:
+Responses are only available over the WebSocket:
 
 ```python
 import asyncio, json, websockets
@@ -106,10 +108,10 @@ async def main():
 asyncio.run(main())
 ```
 
-## Die eigene Levelroutine des Druckers
+## The printer's own leveling routine
 
-Im Puffer einer vorangegangenen Kalibrierung gefunden — nützlich als Vorlage
-für Temperaturen und die Wischsequenz:
+Found in the buffer of a previous calibration — useful as a template for
+temperatures and the wipe sequence:
 
 ```
 BED_MESH_CLEAR
@@ -125,23 +127,23 @@ M109 S140
 BED_MESH_CALIBRATE
 ```
 
-Also: bei 170 °C wischen, bei 140 °C antasten. Die Wischmakros erwarten eine
-passende Z-Höhe — am Testgerät streift die Düse die Wischvorrichtung bei
-**Z 15**; die Makros selbst setzen kein Z.
+So: wipe at 170 °C, probe at 140 °C. The wipe macros expect a suitable Z height
+— on the test machine the nozzle grazes the wiper at **Z 15**; the macros
+themselves set no Z.
 
-## Relevante Werte aus `rinkhals_gklib.cfg`
+## Relevant values from `rinkhals_gklib.cfg`
 
 | | |
 |---|---|
-| Kinematik | corexy, 250 × 250 × 250 mm |
-| Achsgrenzen | X −6…265, Y 0…277, Z −4…253 |
-| Probe | `[cs1237]` Kraftsensor, x/y-Offset 0, `samples: 2` |
-| Bed Mesh | 5…245, `probe_count: 7,7`, `bicubic`, fade 1…10 |
-| Z-Homing | `probe:z_virtual_endstop`, `safe_z_home` bei 125,125 |
+| Kinematics | corexy, 250 × 250 × 250 mm |
+| Axis limits | X −6…265, Y 0…277, Z −4…253 |
+| Probe | `[cs1237]` load cell, x/y offset 0 |
+| Bed mesh | 5…245, fade 1…10 |
+| Z homing | `probe:z_virtual_endstop`, `safe_z_home` at 125,125 |
 
-Die Werte für `probe_count` und `algorithm` stammen im Testgerät aus einer
-eigenen `printer.custom.cfg` (7 × 7 statt 5 × 5, `bicubic` statt `lagrange`) —
-siehe README, *Optional: feineres Bed Mesh*. Rinkhals führt den Inhalt dieser
-Datei beim Start mit der Werkskonfiguration zusammen; `gklib` liest die
-zusammengeführte Fassung, weshalb nach einer Änderung ein Neustart nötig ist
-und ein `FIRMWARE_RESTART` nicht genügt.
+On the test machine `probe_count` and `algorithm` come from a custom
+`printer.custom.cfg` (7 × 7 instead of 5 × 5, `bicubic` instead of `lagrange`) —
+see *Optional: a finer bed mesh* in the README. Rinkhals merges the contents of
+that file with the stock configuration at startup; `gklib` reads the merged
+version, which is why a change requires a reboot and `FIRMWARE_RESTART` is not
+enough.

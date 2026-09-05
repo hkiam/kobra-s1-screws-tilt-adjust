@@ -1,5 +1,7 @@
 # Ablauf
 
+*[English version: WORKFLOW.md](WORKFLOW.md)*
+
 Von der ersten Messung bis zum fertig ausgerichteten Bett. Wer schon Spacer
 verbaut hat, kann Schritt 1 überspringen.
 
@@ -31,7 +33,7 @@ Vorspannung. Gedruckte Spacer nehmen den Versatz vorweg.
 uv run bedlevel spacers
 ```
 
-Details, Geometrie und Druckparameter: [SPACER.md](SPACER.md).
+Details, Geometrie und Druckparameter: [SPACER.md](SPACERS.de.md).
 
 ## Schritt 2 — Positionen einlernen
 

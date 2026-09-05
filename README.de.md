@@ -2,6 +2,32 @@
 
 *[English version: README.md](README.md)*
 
+---
+
+> ### Stand: funktioniert, aber jung
+>
+> Dieses Tool ist **beim Einrichten eines einzelnen Druckers entstanden**, und
+> die Dokumentation wuchs nebenher mit. Alles hier Beschriebene wurde an genau
+> dieser einen Maschine gemacht, das meiste davon genau einmal. Es ist nicht
+> über mehrere Drucker, mehrere Betttypen oder wiederholte Durchläufe
+> nachgetestet.
+>
+> Rechne mit Ecken und Kanten. Die Auswertungslogik deckt 106 Tests ab, die ohne
+> Drucker laufen, und jede Firmware-Aussage in
+> [docs/RINKHALS.de.md](docs/RINKHALS.de.md) wurde am Gerät nachgewiesen — aber
+> der praktische Ablauf hat die Testabdeckung einer Stichprobe von eins.
+>
+> **Am wenigsten erprobt ist der Spacer-Generator.** Er entstand erst, *nachdem*
+> am Testgerät bereits Spacer verbaut waren. Der vollständige Ablauf — Ausgangs­
+> lage messen, drucken, einbauen, nachprüfen — wurde also nie am Stück
+> durchlaufen. Die Rechnung und die STL-Geometrie sind getestet; der Ablauf
+> drumherum ist ein begründeter Vorschlag, kein erprobtes Rezept.
+>
+> Fehlermeldungen und Erfahrungen von anderen Geräten sind sehr willkommen.
+
+---
+
+
 **Mechanische Druckbett-Justage für den Anycubic Kobra S1 mit
 [Rinkhals](https://github.com/rinkhals-community/Rinkhals/).**
 
@@ -56,7 +82,7 @@ volle Schraubenumdrehung daneben.
 Erreicht wurde das in zwei Stufen:
 
 1. **Gedruckte Abstandshalter**, die den Werksversatz vorwegnehmen — der Kobra
-   S1 hat ab Werk keine (siehe [docs/SPACER.md](docs/SPACER.md)).
+   S1 hat ab Werk keine (siehe [docs/SPACER.md](docs/SPACERS.de.md)).
 2. **Feinjustage über die Schrauben** mit diesem Tool.
 
 Was das Bed Mesh danach noch ausgleichen muss, ist eine andere Größenordnung.
@@ -154,7 +180,7 @@ verändert, keine Datei auf dem Drucker angefasst und keine Konfiguration
 
 Ein **SSH-Zugang ist nicht nötig**. Er war nur bei der Entwicklung nützlich, um
 Firmware-Eigenheiten nachzuvollziehen — dokumentiert in
-[docs/RINKHALS.md](docs/RINKHALS.md).
+[docs/RINKHALS.md](docs/RINKHALS.de.md).
 
 ### PC
 
@@ -533,10 +559,10 @@ der Mitte hat, ist das feinere Raster die Voraussetzung dafür.
 
 | | |
 |---|---|
-| [docs/ABLAUF.md](docs/ABLAUF.md) | Vollständiger Ablauf, Schritt für Schritt |
-| [docs/SPACER.md](docs/SPACER.md) | Abstandshalter drucken, die den Werksversatz ausgleichen |
-| [docs/MESSQUALITAET.md](docs/MESSQUALITAET.md) | Notation, Toleranz, Referenzwahl, Fehlerbilder |
-| [docs/RINKHALS.md](docs/RINKHALS.md) | Firmware-Eigenheiten und ihre Nachweise |
+| [docs/ABLAUF.md](docs/WORKFLOW.de.md) | Vollständiger Ablauf, Schritt für Schritt |
+| [docs/SPACER.md](docs/SPACERS.de.md) | Abstandshalter drucken, die den Werksversatz ausgleichen |
+| [docs/MESSQUALITAET.md](docs/MEASUREMENT.de.md) | Notation, Toleranz, Referenzwahl, Fehlerbilder |
+| [docs/RINKHALS.md](docs/RINKHALS.de.md) | Firmware-Eigenheiten und ihre Nachweise |
 
 ### Kommandoübersicht
 
